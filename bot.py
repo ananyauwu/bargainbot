@@ -9,8 +9,8 @@ CSV_FILE = "Bargain Bot Product List - Sheet1.csv"
 product_data = pd.read_csv(CSV_FILE)
 
 # Llama Model API Configuration
-LLAMA_API_URL = "https://llama-api-endpoint.com/v1/chat"  # Replace with your Llama API endpoint
-LLAMA_API_KEY = "your-llama-api-key"  # Replace with your API key
+LLAMA_API_URL = "https://bargainbot-base.eastus2.models.ai.azure.com/chat/completions" 
+LLAMA_API_KEY = "LU4S1xPcCUtzyy7ySRVFDid0OeGTfBLR"
 
 
 def search_product(query):
