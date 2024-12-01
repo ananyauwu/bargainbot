@@ -49,7 +49,7 @@ def generate_llama_response(context):
     headers = {"Authorization": f"Bearer {LLAMA_API_KEY}", "Content-Type": "application/json"}
     payload = {
         "messages": [
-            {"role": "system", "content": "You are a witty price-bargaining chatbot designed to engage users in an entertaining and helpful manner."},
+            {"role": "system", "content": "You are a witty price-bargaining chatbot designed to engage users in an entertaining and helpful manner and to help the customer fix a price on the product. Keep the minimum retail price in mind when bargaining."},
             {"role": "user", "content": context}
         ]
     }
