@@ -10,13 +10,13 @@ CSV_FILE = "/mnt/data/Bargain Bot Product List - Sheet1.csv"
 product_data = pd.read_csv(CSV_FILE)
 
 # Llama Model API Configuration
-LLAMA_API_URL = "https://bargainbot-base.eastus2.models.ai.azure.com/chat/completions"
-LLAMA_API_KEY = "LU4S1xPcCUtzyy7ySRVFDid0OeGTfBLR"
+LLAMA_API_URL = "https://ai-suraj0809ai813750528844.openai.azure.com/"
+LLAMA_API_KEY = "1ZDucnkCOIV3HQ2X4oaAFttP4PLci2jnmsBYBXluhbC3MyLC3bUtJQQJ99AKACHYHv6XJ3w3AAAAACOG4yvd"
 
 # Twilio Configuration
-TWILIO_ACCOUNT_SID = "ACb0140c94031e032c50bb8a4c290fae7a"
-TWILIO_AUTH_TOKEN = "9227cffef21bd1cbc8cae29677135be3"
-TWILIO_WHATSAPP_NUMBER = "whatsapp:+17753209841"  # Twilio sandbox number for WhatsApp
+TWILIO_ACCOUNT_SID = "AC9692e3502917f71176187d84ae39a536"
+TWILIO_AUTH_TOKEN = "eaa6a73a74cb3d2440a224ffd59088e0"
+TWILIO_WHATSAPP_NUMBER = "whatsapp:+14155238886"  # Twilio sandbox number for WhatsApp
 
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
