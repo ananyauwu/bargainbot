@@ -108,10 +108,17 @@ def twilio_webhook():
     return jsonify({"status": "Message sent to user."})
 
 
-@app.route('/status', methods=['GET'])
+@app.route('/status', methods=['POST'])
 def status():
-    return jsonify({"status": "The bot is running!"})
+    status_update = request.form  # Data sent by Twilio with message status
+    message_sid = status_update.get('MessageSid')
+    message_status = status_update.get('MessageStatus')
 
+    logging.debug(f"Status update received: {message_sid} - {message_status}")
+    # You can log this data or update a database to track the message status
+
+    return '', 200  # Respond with HTTP 200 OK to Twilio to acknowledge receipt
+    
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
