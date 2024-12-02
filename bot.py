@@ -112,6 +112,15 @@ def twilio_webhook():
 def status():
     return jsonify({"status": "The bot is running!"})
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
+@app.route('/twilio/webhook', methods=['POST'])
+def twilio_webhook():
+    logging.debug("Incoming webhook triggered.")
+    data = request.form
+    logging.debug(f"Webhook data: {data}")
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
