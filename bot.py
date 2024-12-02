@@ -61,7 +61,7 @@ def generate_llama_response(context):
         return "Error communicating with the Llama API."
 
 
-@app.route('/twilio/webhook', methods=['POST'])
+@app.route('/api/messages', methods=['POST'])
 def twilio_webhook():
     data = request.form
     phone_number = data.get('From')
