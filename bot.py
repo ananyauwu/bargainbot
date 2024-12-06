@@ -16,7 +16,7 @@ LLAMA_API_KEY = "1ZDucnkCOIV3HQ2X4oaAFttP4PLci2jnmsBYBXluhbC3MyLC3bUtJQQJ99AKACH
 # Twilio Configuration
 TWILIO_ACCOUNT_SID = "AC9692e3502917f71176187d84ae39a536"
 TWILIO_AUTH_TOKEN = "eaa6a73a74cb3d2440a224ffd59088e0"
-TWILIO_WHATSAPP_NUMBER = "whatsapp:+14155238886"  # Twilio sandbox number for WhatsApp
+TWILIO_WHATSAPP_NUMBER = "whatsapp:+917483490469"  # Twilio sandbox number for WhatsApp
 
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
