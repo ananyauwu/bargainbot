@@ -1,1 +1,1 @@
-web: gunicorn bot:app --bind=0.0.0.0:$PORT
+gunicorn -w 4 -b 0.0.0.0:8000 bot:app
