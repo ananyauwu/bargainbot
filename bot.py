@@ -1,10 +1,13 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # Import CORS
 import pandas as pd
 import requests
 from twilio.rest import Client
 import os
+import logging
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for the entire application
 
 # Load product data from CSV
 CSV_FILE = "/mnt/data/Bargain Bot Product List - Sheet1.csv"
@@ -17,7 +20,7 @@ LLAMA_API_KEY = "1ZDucnkCOIV3HQ2X4oaAFttP4PLci2jnmsBYBXluhbC3MyLC3bUtJQQJ99AKACH
 # Twilio Configuration
 TWILIO_ACCOUNT_SID = "AC9692e3502917f71176187d84ae39a536"
 TWILIO_AUTH_TOKEN = "eaa6a73a74cb3d2440a224ffd59088e0"
-TWILIO_WHATSAPP_NUMBER = "whatsapp:+917483490469"  # Twilio sandbox number for WhatsApp
+TWILIO_WHATSAPP_NUMBER = "whatsapp:+917483490469"
 
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
@@ -119,16 +122,9 @@ def status():
     # You can log this data or update a database to track the message status
 
     return '', 200  # Respond with HTTP 200 OK to Twilio to acknowledge receipt
-    
-import logging
+
 
 logging.basicConfig(level=logging.DEBUG)
-
-@app.route('/twilio/webhook', methods=['POST'])
-def twilio_webhook():
-    logging.debug("Incoming webhook triggered.")
-    data = request.form
-    logging.debug(f"Webhook data: {data}")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
