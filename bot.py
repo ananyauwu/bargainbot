@@ -123,6 +123,9 @@ def status():
 
     return '', 200  # Respond with HTTP 200 OK to Twilio to acknowledge receipt
 
+@app.route('/')
+def index():
+    return "Welcome to Bargain Bot! The API is running."
 
 logging.basicConfig(level=logging.DEBUG)
 
