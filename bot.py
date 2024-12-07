@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for the entire application
 
 # Load product data from CSV
-CSV_FILE = "/mnt/data/Bargain Bot Product List - Sheet1.csv"
+CSV_FILE = "Bargain Bot Product List - Sheet1.csv"
 product_data = pd.read_csv(CSV_FILE)
 
 # Llama Model API Configuration
