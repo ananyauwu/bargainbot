@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # Import CORS
+from flask_cors import CORS
 import pandas as pd
 import requests
 from twilio.rest import Client
@@ -7,7 +7,7 @@ import os
 import logging
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for the entire application
+CORS(app)
 
 # Load product data from CSV
 CSV_FILE = "Bargain Bot Product List - Sheet1.csv"
@@ -111,13 +111,14 @@ def twilio_webhook():
         else:
             chatbot_reply += "No related products found."
 
-    # Respond back via Twilio
-    twilio_client.messages.create(
-        body=chatbot_reply,
-        from_=TWILIO_WHATSAPP_NUMBER,
-        to=phone_number
-    )
-    return jsonify({"status": "Message sent to user."})
+    # Respond immediately with a reply
+    response = f"User Query: {user_query}\n\n{chatbot_reply}"
+
+    # Twilio response
+    return jsonify({
+        "status": "Message processed",
+        "reply": response
+    })
 
 
 @app.route('/status', methods=['POST'])
@@ -127,8 +128,6 @@ def status():
     message_status = status_update.get('MessageStatus')
 
     logging.debug(f"Status update received: {message_sid} - {message_status}")
-    # You can log this data or update a database to track the message status
-
     return '', 200  # Respond with HTTP 200 OK to Twilio to acknowledge receipt
 
 
