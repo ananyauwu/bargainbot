@@ -26,7 +26,9 @@ twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 
 def search_product(query):
-    matches = product_data[product_data['Product Name'].str.contains(query, case=False, na=False)]
+    matches = product_data[
+        product_data.apply(lambda row: row.astype(str).str.contains(query, case=False, na=False).any(), axis=1)
+    ]
     if not matches.empty:
         response = []
         for _, row in matches.iterrows():
@@ -97,11 +99,17 @@ def twilio_webhook():
             f"{product_details}\n"
             f"Now, engage with the user in witty price bargaining."
         )
-
-        # Step 3: Get Llama response
         chatbot_reply = generate_llama_response(context)
     else:
-        chatbot_reply = f"Sorry, I couldn't find any products matching '{user_query}'."
+        chatbot_reply = (
+            f"Sorry, I couldn't find any exact matches for '{user_query}'. However, here are some suggestions:\n"
+        )
+        related_products = search_product(user_query[:3])  # Use a substring for broader search
+        if related_products:
+            suggestions = "\n".join([f"- {p['Product Name']}" for p in related_products])
+            chatbot_reply += suggestions
+        else:
+            chatbot_reply += "No related products found."
 
     # Respond back via Twilio
     twilio_client.messages.create(
@@ -123,9 +131,11 @@ def status():
 
     return '', 200  # Respond with HTTP 200 OK to Twilio to acknowledge receipt
 
+
 @app.route('/')
 def index():
     return "Welcome to Bargain Bot! The API is running."
+
 
 logging.basicConfig(level=logging.DEBUG)
 
