@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for the entire application
 
 # Constants and Configurations
-CSV_FILE = "Bargain Bot Product List - Sheet1.csv"  # Ensure the file name is concise and correct
+CSV_FILE = "Bargain Bot Product List - Sheet1.csv"
 LLAMA_API_URL = "https://ai-suraj0809ai813750528844.openai.azure.com/"
 LLAMA_API_KEY = "1ZDucnkCOIV3HQ2X4oaAFttP4PLci2jnmsBYBXluhbC3MyLC3bUtJQQJ99AKACHYHv6XJ3w3AAAAACOG4yvd"
 TWILIO_ACCOUNT_SID = "AC9692e3502917f71176187d84ae39a536"
