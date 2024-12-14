@@ -5,20 +5,22 @@ import requests
 from twilio.rest import Client
 import logging
 import os
- 
+
 app = Flask(__name__)
 CORS(app)  # Enable CORS for the entire application
 
-# Constants and Configurations
-CSV_FILE = "Bargain Bot Product List - Sheet1.csv"
-LLAMA_API_URL = "https://ai-suraj0809ai813750528844.openai.azure.com/"
-LLAMA_API_KEY = "1ZDucnkCOIV3HQ2X4oaAFttP4PLci2jnmsBYBXluhbC3MyLC3bUtJQQJ99AKACHYHv6XJ3w3AAAAACOG4yvd"
-TWILIO_ACCOUNT_SID = "AC9692e3502917f71176187d84ae39a536"
-TWILIO_AUTH_TOKEN = "181d293394303dbf776e3d92f1605ab2"
-TWILIO_WHATSAPP_NUMBER = "whatsapp:+917483490469"
+# Load sensitive information from environment variables
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER")
+LLAMA_API_URL = os.getenv("LLAMA_API_URL")
+LLAMA_API_KEY = os.getenv("LLAMA_API_KEY")
 
 # Initialize Twilio Client
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+# Constants and Configurations
+CSV_FILE = "Bargain Bot Product List - Sheet1.csv"
 
 # Load product data with error handling
 try:
@@ -98,7 +100,7 @@ def twilio_webhook():
         )
         chatbot_reply = generate_llama_response(context)
     else:
-        chatbot_reply = f"Sorry, I couldn't find any products matching '{user_query}'."
+        chatbot_reply = f"Sorry, I couldn't find any products matching '{user_query}'." 
 
     # Send response via Twilio
     try:
