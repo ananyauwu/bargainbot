@@ -76,7 +76,7 @@ def twilio_webhook():
     products = search_product(user_query)
     if products:
         # Start the conversation with Llama
-        chatbot_reply = f"Hey there! 👋 I found some awesome products matching '{user_query}'! Let me tell you about them, one at a time!"
+        chatbot_reply = f"Hey there! I found some awesome products matching '{user_query}'! Let me tell you about them, one at a time!"
 
         # Loop over the top 3 products and generate witty responses for each
         for i, product in enumerate(products[:3], 1):
@@ -93,14 +93,14 @@ def twilio_webhook():
             witty_response = generate_llama_response(context)
 
             # Append the witty response to chatbot reply
-            chatbot_reply += f"\n\n✨ **Product {i}: {product['Product Name']}** ✨"
+            chatbot_reply += f"\n\n **Product {i}: {product['Product Name']}**"
             chatbot_reply += f"\n{witty_response}"
 
             # Add suspense and keep the conversation going
-            chatbot_reply += "\n\nWant more details? Just say the word! 😉"
+            chatbot_reply += "\n\nWant more details? Just say the word!"
 
         # After all details are shared, end with a call to action
-        chatbot_reply += "\n\nSo, what do you think? Ready to grab one of these amazing deals? 😎"
+        chatbot_reply += "\n\nSo, what do you think? Ready to grab one of these amazing deals?"
 
     else:
         # If no product is found, provide a helpful message
