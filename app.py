@@ -5,6 +5,7 @@ import requests
 from twilio.rest import Client
 import logging
 import os
+import difflib
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for the entire application
@@ -18,9 +19,6 @@ LLAMA_API_KEY = os.getenv("LLAMA_API_KEY")
 
 # Initialize Twilio Client
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-
-# Constants and Configurations
-CSV_FILE = "Bargain Bot Product List - Sheet1.csv"
 
 # Load product data with error handling
 try:
@@ -46,15 +44,16 @@ def search_product(query):
 
 # Helper Function for Llama Response
 def generate_llama_response(context):
-    """Get a response from the Llama model API."""
+    """Get a witty response from the Llama model API."""
     headers = {"Authorization": f"Bearer {LLAMA_API_KEY}", "Content-Type": "application/json"}
     payload = {
         "messages": [
             {
                 "role": "system",
                 "content": (
-                    "You are a witty price-bargaining chatbot. Help the customer fix a price on the product. "
-                    "Keep the minimum retail price in mind when bargaining."
+                    "You are a witty, fun chatbot designed to help customers make decisions. "
+                    "Use humor and persuasive language to help the customer decide on a product. "
+                    "Do not overwhelm them with all the details at once, and keep the tone friendly and engaging."
                 )
             },
             {"role": "user", "content": context}
@@ -74,33 +73,39 @@ def twilio_webhook():
     phone_number = data.get('From')
     user_query = data.get('Body')
 
-    # Search for products
+    # Search for products dynamically
     products = search_product(user_query)
     if products:
-        product_details = "\n\n".join([
-            (
-                f"Product Name: {p['Product Name']}\n"
-                f"Category: {p['Category']}\n"
-                f"MRP: {p['MRP']}\n"
-                f"Minimum Price: {p['Minimum Retail Price']}\n"
-                f"Units Available: {p['Units Available']}\n"
-                f"Description: {p['Product Description Summary']}\n"
-                f"Specifications: {p['Product Specifications']}\n"
-                f"Shipping Details: {p['Shipping details']}\n"
-                f"Policy: {p['Policy']}\n"
-                f"Image: {p['Product Image']}\n"
-                f"Video: {p['Product Video']}\n"
+        # Start the conversation with Llama
+        chatbot_reply = f"Hey there! 👋 I found some awesome products matching '{user_query}'! Let me tell you about them, one at a time!"
+
+        # Loop over the top 3 products and generate witty responses for each
+        for i, product in enumerate(products[:3], 1):
+            # Pass product details to Llama to generate a witty response
+            context = (
+                f"Product Name: {product['Product Name']}\n"
+                f"Category: {product['Category']}\n"
+                f"MRP: ₹{product['MRP']}\n"
+                f"Minimum Price: ₹{product['Minimum Retail Price']}\n"
+                f"Units Available: {product['Units Available']}\n"
+                f"Description: {product['Product Description Summary']}\n"
+                "Generate a witty response to convince the customer to buy this product."
             )
-            for p in products
-        ])
-        context = (
-            f"The user is asking about '{user_query}'. Here are the matching products:\n"
-            f"{product_details}\n"
-            "Now, engage with the user in witty price bargaining."
-        )
-        chatbot_reply = generate_llama_response(context)
+            witty_response = generate_llama_response(context)
+
+            # Append the witty response to chatbot reply
+            chatbot_reply += f"\n\n✨ **Product {i}: {product['Product Name']}** ✨"
+            chatbot_reply += f"\n{witty_response}"
+
+            # Add suspense and keep the conversation going
+            chatbot_reply += "\n\nWant more details? Just say the word! 😉"
+
+        # After all details are shared, end with a call to action
+        chatbot_reply += "\n\nSo, what do you think? Ready to grab one of these amazing deals? 😎"
+
     else:
-        chatbot_reply = f"Sorry, I couldn't find any products matching '{user_query}'." 
+        # If no product is found, provide a helpful message
+        chatbot_reply = f"Oops! I couldn't find anything matching '{user_query}'. How about trying a different search term?"
 
     # Send response via Twilio
     try:
