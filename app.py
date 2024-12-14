@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # Import CORS
+from flask_cors import CORS
 import pandas as pd
 import requests
 from twilio.rest import Client
@@ -7,41 +7,50 @@ import logging
 import os
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for the entire application
+CORS(app)
 
-# Load sensitive information from environment variables
-TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
-TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
-TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER")
-LLAMA_API_URL = os.getenv("LLAMA_API_URL")
-LLAMA_API_KEY = os.getenv("LLAMA_API_KEY")
+# Helper function to load environment variables
+def get_env_variable(var_name, default=None):
+    value = os.getenv(var_name, default)
+    if value is None:
+        logging.error(f"Missing environment variable: {var_name}")
+        raise EnvironmentError(f"Required environment variable {var_name} is not set.")
+    return value
+
+# Load environment variables
+TWILIO_ACCOUNT_SID = get_env_variable("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = get_env_variable("TWILIO_AUTH_TOKEN")
+TWILIO_WHATSAPP_NUMBER = get_env_variable("TWILIO_WHATSAPP_NUMBER")
+LLAMA_API_URL = get_env_variable("LLAMA_API_URL")
+LLAMA_API_KEY = get_env_variable("LLAMA_API_KEY")
+CSV_FILE = "Bargain Bot Product List - Sheet1.csv"
 
 # Initialize Twilio Client
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
-# Load product data with error handling
+# Load and preprocess product data
 try:
     product_data = pd.read_csv(CSV_FILE, usecols=[
         "Serial Number", "Product Name", "Category", "MRP", "Minimum Retail Price",
         "Units Available", "Product Description Summary", "Product Image",
         "Product Video", "Product Specifications", "Shipping details", "Policy"
     ])
+    product_data['Search Index'] = product_data['Product Name'].str.lower()
 except FileNotFoundError:
     logging.error(f"CSV file not found: {CSV_FILE}")
     product_data = pd.DataFrame()
 
-# Helper Function to Search for Products
+# Helper function to search for products
 def search_product(query):
-    """Search for products matching the query."""
+    """Search for products matching the query using a case-insensitive search."""
     if product_data.empty:
         return None
 
-    matches = product_data[
-        product_data['Product Name'].str.contains(query, case=False, na=False)
-    ]
+    query = query.lower()
+    matches = product_data[product_data['Search Index'].str.contains(query, na=False)]
     return matches.to_dict(orient='records') if not matches.empty else None
 
-# Helper Function for Llama Response
+# Helper function to generate a witty response from Llama
 def generate_llama_response(context):
     """Get a witty response from the Llama model API."""
     headers = {"Authorization": f"Bearer {LLAMA_API_KEY}", "Content-Type": "application/json"}
@@ -59,12 +68,16 @@ def generate_llama_response(context):
         ]
     }
 
-    response = requests.post(LLAMA_API_URL, headers=headers, json=payload)
-    if response.ok:
-        return response.json().get("choices", [])[0].get("message", {}).get("content", "Sorry, I couldn't come up with a reply.")
-    return f"Error communicating with the Llama API: {response.text}"
+    try:
+        response = requests.post(LLAMA_API_URL, headers=headers, json=payload, timeout=10)
+        response.raise_for_status()
+        result = response.json()
+        return result.get("choices", [])[0].get("message", {}).get("content", "Couldn't generate a witty response.")
+    except requests.RequestException as e:
+        logging.error(f"Llama API error: {e}")
+        return "Oops! My witty side is taking a nap right now. Try again later!"
 
-# Twilio Webhook Route
+# Twilio webhook route
 @app.route('/api/messages', methods=['POST'])
 def twilio_webhook():
     """Handle incoming messages from Twilio."""
@@ -74,13 +87,13 @@ def twilio_webhook():
 
     # Search for products dynamically
     products = search_product(user_query)
-    if products:
-        # Start the conversation with Llama
-        chatbot_reply = f"Hey there! I found some awesome products matching '{user_query}'! Let me tell you about them, one at a time!"
+    message_parts = []
 
-        # Loop over the top 3 products and generate witty responses for each
+    if products:
+        message_parts.append(f"Hey there! I found some awesome products matching '{user_query}'! Let me tell you about them:")
+
+        # Generate responses for top 3 products
         for i, product in enumerate(products[:3], 1):
-            # Pass product details to Llama to generate a witty response
             context = (
                 f"Product Name: {product['Product Name']}\n"
                 f"Category: {product['Category']}\n"
@@ -91,22 +104,14 @@ def twilio_webhook():
                 "Generate a witty response to convince the customer to buy this product."
             )
             witty_response = generate_llama_response(context)
+            message_parts.append(f"**Product {i}: {product['Product Name']}**\n{witty_response}\nWant more details? Just say the word!")
 
-            # Append the witty response to chatbot reply
-            chatbot_reply += f"\n\n **Product {i}: {product['Product Name']}**"
-            chatbot_reply += f"\n{witty_response}"
-
-            # Add suspense and keep the conversation going
-            chatbot_reply += "\n\nWant more details? Just say the word!"
-
-        # After all details are shared, end with a call to action
-        chatbot_reply += "\n\nSo, what do you think? Ready to grab one of these amazing deals?"
-
+        message_parts.append("So, what do you think? Ready to grab one of these amazing deals?")
     else:
-        # If no product is found, provide a helpful message
-        chatbot_reply = f"Oops! I couldn't find anything matching '{user_query}'. How about trying a different search term?"
+        message_parts.append(f"Oops! I couldn't find anything matching '{user_query}'. How about trying a different search term?")
 
     # Send response via Twilio
+    chatbot_reply = "\n\n".join(message_parts)
     try:
         twilio_client.messages.create(
             body=chatbot_reply,
@@ -119,16 +124,16 @@ def twilio_webhook():
 
     return jsonify({"status": "Message sent to user."})
 
-# Health Check Route
+# Health check route
 @app.route('/')
 def index():
     """Health check endpoint."""
     return "Welcome to Bargain Bot! The API is running."
 
-# Logging Configuration
+# Logging configuration
 logging.basicConfig(level=logging.INFO)
 
-# Main Entrypoint
+# Main entrypoint
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     app.run(host="0.0.0.0", port=port)
