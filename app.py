@@ -5,7 +5,6 @@ import requests
 from twilio.rest import Client
 import logging
 import os
-import difflib
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for the entire application
